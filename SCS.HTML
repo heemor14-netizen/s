@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+  <meta charset="UTF-8">
+  <title>تسجيل الدخول بجوجل</title>
+
+  <!-- مكتبة Google -->
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
+</head>
+<body>
+
+  <h2>تسجيل الدخول باستخدام Google</h2>
+
+  <!-- زر تسجيل الدخول -->
+  <div id="g_id_onload"
+       data-client_id="270081556974-dbvblq6cd4g63339hevqkhlvsd50ac0g.apps.googleusercontent.com"
+       data-callback="handleCredentialResponse">
+  </div>
+
+  <div class="g_id_signin"></div>
+
+  <script>
+    function handleCredentialResponse(response) {
+      // التوكن المشفر من Google
+      const token = response.credential;
+
+      // فك التوكن للحصول على بيانات المستخدم
+      const data = JSON.parse(atob(token.split('.')[1]));
+
+      console.log(data); // تطبع كل البيانات في الكونسول
+
+      alert(
+        "مرحبا " + data.name + 
+        "\nإيميلك: " + data.email
+      );
+    }
+  </script>
+
+</body>
+</html>

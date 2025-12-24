@@ -37,6 +37,10 @@ header p{color:#cbd5f5}
 .dashboard button{background:var(--accent);color:#fff;border:none;font-size:16px;cursor:pointer}
 footer{text-align:center;padding:25px;color:#cbd5f5}
 </style>
+
+<!-- إضافة مكتبة Google Identity Services -->
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+
 </head>
 <body>
 
@@ -63,30 +67,36 @@ footer{text-align:center;padding:25px;color:#cbd5f5}
 <section class="section">
 <h2>لوحة تحكم الصنايعي</h2>
 <div class="dashboard">
-<button id="loginBtn">تسجيل الدخول بـ Google</button>
-<p id="userStatus"></p>
+  <!-- زر تسجيل الدخول الجديد باستخدام Google -->
+  <div id="g_id_onload"
+       data-client_id="270081556974-dbvblq6cd4g63339hevqkhlvsd50ac0g.apps.googleusercontent.com"
+       data-callback="handleCredentialResponse">
+  </div>
 
-<input id="name" placeholder="اسم الورشة">
-<input id="spec" placeholder="التخصص">
-<select id="category">
-  <option value="cars">صناعيات السيارات</option>
-  <option value="general">الورش العامة</option>
-</select>
-<input id="phone" placeholder="رقم الجوال">
-<input id="loc" placeholder="الموقع">
-<select id="rate">
-  <option value="5">★★★★★</option>
-  <option value="4">★★★★☆</option>
-  <option value="3">★★★☆☆</option>
-</select>
-<button onclick="addWorkshop()">إضافة الورشة</button>
+  <div class="g_id_signin"></div>
+
+  <p id="userStatus"></p>
+
+  <input id="name" placeholder="اسم الورشة">
+  <input id="spec" placeholder="التخصص">
+  <select id="category">
+    <option value="cars">صناعيات السيارات</option>
+    <option value="general">الورش العامة</option>
+  </select>
+  <input id="phone" placeholder="رقم الجوال">
+  <input id="loc" placeholder="الموقع">
+  <select id="rate">
+    <option value="5">★★★★★</option>
+    <option value="4">★★★★☆</option>
+    <option value="3">★★★☆☆</option>
+  </select>
+  <button onclick="addWorkshop()">إضافة الورشة</button>
 </div>
 </section>
 
 </div>
 <footer>© 2025 الصناعية – صناعية صامطة</footer>
 
-<!-- Firebase SDK عبر CDN -->
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.6.0/firebase-app.js";
 import { getAuth, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/10.6.0/firebase-auth.js";
@@ -105,19 +115,18 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const provider = new GoogleAuthProvider();
 
-// تسجيل الدخول
-document.getElementById('loginBtn').addEventListener('click', () => {
-  signInWithPopup(auth, provider)
-  .then(result => {
-    const user = result.user;
-    localStorage.setItem('user', JSON.stringify({name: user.displayName, email: user.email}));
-    document.getElementById('userStatus').innerText = '✅ تم تسجيل الدخول كـ ' + user.displayName;
-  })
-  .catch(error => {
-    console.error(error);
-    alert('فشل تسجيل الدخول: ' + error.message);
-  });
-});
+// دالة استلام بيانات المستخدم بعد تسجيل الدخول عبر Google
+function handleCredentialResponse(response) {
+  const token = response.credential;
+  const data = JSON.parse(atob(token.split('.')[1])); // فك التوكن لاستقبال بيانات المستخدم
+  const user = {
+    name: data.name,
+    email: data.email
+  };
+
+  localStorage.setItem('user', JSON.stringify(user));
+  document.getElementById('userStatus').innerText = `✅ تم تسجيل الدخول كـ ${user.name}`;
+}
 
 // تحميل الورش المحفوظة
 window.onload = function() {
@@ -127,7 +136,7 @@ window.onload = function() {
 
 // إضافة ورشة
 window.addWorkshop = function() {
-  if(!localStorage.getItem('user')){
+  if (!localStorage.getItem('user')) {
     alert('سجّل دخولك أولاً');
     return;
   }
@@ -147,31 +156,31 @@ window.addWorkshop = function() {
 
   renderWorkshop(w);
 
-  document.getElementById('name').value='';
-  document.getElementById('spec').value='';
-  document.getElementById('phone').value='';
-  document.getElementById('loc').value='';
+  document.getElementById('name').value = '';
+  document.getElementById('spec').value = '';
+  document.getElementById('phone').value = '';
+  document.getElementById('loc').value = '';
 }
 
 // عرض بطاقة ورشة
-function renderWorkshop(w){
-  let stars='★★★★★☆☆☆☆☆'.slice(5-w.rate,10-w.rate);
-  let card=document.createElement('div');
-  card.className='card';
-  card.dataset.search=w.name+' '+w.spec;
-  card.onclick=()=>openDetails(card);
-  card.innerHTML=`
+function renderWorkshop(w) {
+  let stars = '★★★★★☆☆☆☆☆'.slice(5 - w.rate, 10 - w.rate);
+  let card = document.createElement('div');
+  card.className = 'card';
+  card.dataset.search = w.name + ' ' + w.spec;
+  card.onclick = () => openDetails(card);
+  card.innerHTML = `
     <h3>${w.name}</h3>
     <p>${w.spec}</p>
     <div class="rating">${stars}</div>
     <div class="location">📞 ${w.phone}</div>
     <div class="location">📍 ${w.loc}</div>
   `;
-  document.getElementById(w.cat+'Cards').appendChild(card);
+  document.getElementById(w.cat + 'Cards').appendChild(card);
 }
 
 // فتح تفاصيل الورشة
-window.openDetails = function(card){
+window.openDetails = function(card) {
   const w = {
     name: card.querySelector('h3').innerText,
     spec: card.querySelector('p').innerText,
