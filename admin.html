@@ -2,55 +2,171 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="UTF-8">
-<title>لوحة التحكم | الصناعية</title>
+<title>الصناعية | صناعية صامطة</title>
 <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
 
 <style>
+:root{
+  --accent:#2563eb;
+  --card:#ffffff;
+  --text:#1e293b;
+  --muted:#64748b;
+  --star:#facc15;
+}
+*{box-sizing:border-box}
+
 body{
-  font-family:'Cairo';
-  background:#0f172a;
-  color:#fff;
   margin:0;
-}
-.container{
-  max-width:500px;
-  margin:60px auto;
-}
-.card{
-  background:#fff;
-  color:#1e293b;
-  padding:25px;
-  border-radius:16px;
-}
-input,select,button{
-  width:100%;
-  padding:12px;
-  margin-bottom:12px;
-  border-radius:10px;
-}
-button{
-  background:#2563eb;
+  font-family:'Cairo',sans-serif;
+  background:linear-gradient(135deg,#0f172a,#1e293b);
   color:#fff;
+}
+
+/* ===== تسجيل الدخول ===== */
+.auth-box{
+  position:absolute;
+  top:20px;
+  left:20px;
+}
+.login-btn{
+  background:transparent;
+  border:1px solid #cbd5f5;
+  color:#fff;
+  padding:8px 16px;
+  border-radius:20px;
+  cursor:pointer;
+  transition:.3s;
+}
+.login-btn:hover{
+  background:#2563eb;
+}
+.user-avatar{
+  width:42px;
+  height:42px;
+  border-radius:50%;
+  display:none;
+}
+
+/* ===== الهيدر ===== */
+header{text-align:center;padding:40px 20px}
+header p{color:#cbd5f5}
+
+.search-box{max-width:500px;margin:30px auto}
+.search-box input{width:100%;padding:14px;border-radius:12px;border:none}
+
+/* ===== الأقسام ===== */
+.categories-wrapper{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:10px;
+  margin:25px 0;
+  opacity:0;
+  transform:translateX(40px);
+  animation: catsFade 1s ease forwards;
+}
+@keyframes catsFade{
+  to{opacity:1;transform:translateX(0)}
+}
+.categories{
+  display:flex;
+  gap:30px;
+  overflow-x:auto;
+  scroll-behavior:smooth;
+  scrollbar-width:none;
+}
+.categories::-webkit-scrollbar{display:none}
+.categories button{
+  background:transparent;
   border:none;
+  color:#e5e7eb;
+  font-size:16px;
+  font-weight:600;
+  cursor:pointer;
+  position:relative;
+}
+.categories button::after{
+  content:'';
+  position:absolute;
+  bottom:-6px;
+  right:0;
+  width:0;
+  height:3px;
+  background:var(--accent);
+  transition:.3s;
+}
+.categories button:hover::after{width:100%}
+.arrow{
+  background:transparent;
+  border:none;
+  color:#cbd5f5;
+  font-size:28px;
   cursor:pointer;
 }
-.hidden{display:none}
+
+/* ===== المحتوى ===== */
+.container{width:90%;max-width:1200px;margin:40px auto}
+.section{margin-bottom:60px}
+.section h2{border-right:6px solid var(--accent);padding-right:15px}
+.cards{
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(260px,1fr));
+  gap:22px
+}
+.card{
+  background:var(--card);
+  color:var(--text);
+  border-radius:16px;
+  padding:22px;
+  box-shadow:0 15px 35px rgba(0,0,0,.2);
+}
+.card p{color:var(--muted);font-size:14px}
+.rating{color:var(--star)}
+.location{font-size:13px;color:#475569}
+
+/* ===== الدعم الفني ===== */
+.support{
+  background:#16a34a;
+  margin:30px auto 10px;
+  padding:16px;
+  border-radius:14px;
+  width:fit-content;
+  transition:.3s;
+}
+.support:hover{
+  transform:translateY(-4px);
+  box-shadow:0 10px 25px rgba(34,197,94,.6);
+}
+.support a{
+  color:#fff;
+  text-decoration:none;
+  font-weight:600;
+}
+
+footer{text-align:center;padding:25px;color:#cbd5f5}
+
+/* ===== موبايل ===== */
+@media(max-width:768px){
+  header{padding-top:70px}
+  .auth-box{top:15px;left:15px}
+}
 </style>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.6.0/firebase-app.js";
 import { getAuth, signInWithPopup, GoogleAuthProvider }
 from "https://www.gstatic.com/firebasejs/10.6.0/firebase-auth.js";
-import { getFirestore, collection, addDoc }
+import { getFirestore, collection, getDocs }
 from "https://www.gstatic.com/firebasejs/10.6.0/firebase-firestore.js";
 
+/* Firebase sanaeya-samtah */
 const firebaseConfig = {
-  apiKey: "AIzaSyD5MrbyqmXoGgFKB_gvY6DX_5bGdbTyh9o",
-  authDomain: "heemo-d02f2.firebaseapp.com",
-  projectId: "heemo-d02f2",
-  storageBucket: "heemo-d02f2.appspot.com",
-  messagingSenderId: "777552011368",
-  appId: "1:777552011368:web:8dc7e8cc00644b23dc9bdd"
+  apiKey: "AIzaSyBdhesRwD2eiDvqqcMGhC59U4whICwTO3E",
+  authDomain: "sanaeya-samtah.firebaseapp.com",
+  projectId: "sanaeya-samtah",
+  storageBucket: "sanaeya-samtah.appspot.com",
+  messagingSenderId: "1092994215610",
+  appId: "1:1092994215610:web:e68b5a3eccb24235d39c83"
 };
 
 const app = initializeApp(firebaseConfig);
@@ -58,58 +174,97 @@ const auth = getAuth(app);
 const db = getFirestore(app);
 const provider = new GoogleAuthProvider();
 
-/* 🔐 الأدمن */
-const ADMINS = ["heemoxo41430@gmail.com","heemor14@gmail.com"];
-
-window.login = async () => {
-  const r = await signInWithPopup(auth, provider);
-  if(!ADMINS.includes(r.user.email)){
-    alert("غير مصرح لك");
-    return;
-  }
-  document.getElementById("panel").classList.remove("hidden");
-  document.getElementById("loginBtn").style.display="none";
+window.login = async ()=>{
+  const r = await signInWithPopup(auth,provider);
+  loginBtn.style.display="none";
+  avatar.src=r.user.photoURL;
+  avatar.style.display="block";
 };
 
-window.addWorkshop = async () => {
-  await addDoc(collection(db,"workshops"),{
-    name:name.value,
-    spec:spec.value,
-    cat:category.value,
-    phone:phone.value,
-    loc:loc.value,
-    rate:+rate.value
+window.goTo=id=>{
+  document.getElementById(id).scrollIntoView({behavior:"smooth"});
+};
+window.scrollCats=v=>{
+  categories.scrollBy({left:v,behavior:"smooth"});
+};
+
+async function load(){
+  const q=await getDocs(collection(db,"workshops"));
+  q.forEach(d=>{
+    const w=d.data();
+    const c=document.createElement("div");
+    c.className="card";
+    c.innerHTML=`
+      <h3>${w.name}</h3>
+      <p>${w.spec}</p>
+      <div class="rating">${"★★★★★☆☆☆☆☆".slice(5-w.rate,10-w.rate)}</div>
+      <div class="location">📞 ${w.phone}</div>
+      <div class="location">📍 ${w.loc}</div>`;
+    document.getElementById(w.cat+"Cards").appendChild(c);
   });
-  alert("تمت الإضافة ✅");
-};
+}
+window.onload=load;
 </script>
 </head>
 
 <body>
 
-<div class="container">
-  <button id="loginBtn" onclick="login()">تسجيل الدخول (أدمن)</button>
-
-  <div id="panel" class="card hidden">
-    <h3>إضافة ورشة</h3>
-    <input id="name" placeholder="اسم الورشة">
-    <input id="spec" placeholder="التخصص">
-    <select id="category">
-      <option value="cars">سيارات</option>
-      <option value="metal">حدادة</option>
-      <option value="sofa">كنب</option>
-      <option value="aluminum">ألمنيوم</option>
-    </select>
-    <input id="phone" placeholder="الجوال">
-    <input id="loc" placeholder="الموقع">
-    <select id="rate">
-      <option value="5">★★★★★</option>
-      <option value="4">★★★★☆</option>
-      <option value="3">★★★☆☆</option>
-    </select>
-    <button onclick="addWorkshop()">إضافة</button>
-  </div>
+<div class="auth-box">
+  <button id="loginBtn" class="login-btn" onclick="login()">تسجيل الدخول</button>
+  <img id="avatar" class="user-avatar">
 </div>
+
+<header>
+  <h1>الصناعية – صناعية صامطة</h1>
+  <p>دليل شامل يجمع ورش وصنايعية صناعية صامطة</p>
+
+  <div class="categories-wrapper">
+    <button class="arrow" onclick="scrollCats(200)">‹</button>
+    <div class="categories" id="categories">
+      <button onclick="goTo('cars')">🚗 السيارات</button>
+      <button onclick="goTo('metal')">🔨 الحدادة</button>
+      <button onclick="goTo('sofa')">🛋️ الكنب</button>
+      <button onclick="goTo('aluminum')">🪟 الألمنيوم</button>
+    </div>
+    <button class="arrow" onclick="scrollCats(-200)">›</button>
+  </div>
+
+  <div class="search-box">
+    <input placeholder="🔍 ابحث">
+  </div>
+</header>
+
+<div class="container">
+
+<section class="section" id="cars">
+<h2>ورش السيارات</h2>
+<div class="cards" id="carsCards"></div>
+</section>
+
+<section class="section" id="metal">
+<h2>ورش الحدادة</h2>
+<div class="cards" id="metalCards"></div>
+</section>
+
+<section class="section" id="sofa">
+<h2>ورش الكنب</h2>
+<div class="cards" id="sofaCards"></div>
+</section>
+
+<section class="section" id="aluminum">
+<h2>ورش الألمنيوم</h2>
+<div class="cards" id="aluminumCards"></div>
+</section>
+
+<div class="support">
+  <a href="https://wa.me/966531991617" target="_blank">
+    💬 الدعم الفني – واتساب
+  </a>
+</div>
+
+</div>
+
+<footer>© 2025 الصناعية – صناعية صامطة</footer>
 
 </body>
 </html>
