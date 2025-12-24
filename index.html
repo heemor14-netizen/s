@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <title>الصناعية | صناعية صامطة</title>
 <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
+
 <style>
 :root{
   --accent:#2563eb;
@@ -28,166 +29,123 @@ header p{color:#cbd5f5}
 .section h2{border-right:6px solid var(--accent);padding-right:15px}
 .cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:22px}
 .card{background:var(--card);color:var(--text);border-radius:16px;padding:22px;box-shadow:0 15px 35px rgba(0,0,0,.2);cursor:pointer;position:relative}
-.card h3{margin:0}
 .card p{color:var(--muted);font-size:14px}
 .rating{color:var(--star);margin:6px 0}
 .location{font-size:13px;color:#475569}
 .dashboard{background:#fff;color:var(--text);padding:30px;border-radius:18px;margin-top:30px}
 .dashboard input,select,button{width:100%;padding:12px;margin-bottom:15px;border-radius:10px}
 .dashboard button{background:var(--accent);color:#fff;border:none;font-size:16px;cursor:pointer}
+.delete-btn{position:absolute;top:10px;right:10px;background:red;color:#fff;border:none;padding:5px 10px;border-radius:5px;cursor:pointer}
 footer{text-align:center;padding:25px;color:#cbd5f5}
-.delete-btn{position:absolute;top:10px;right:10px;background:red;color:#fff;border:none;padding:5px 10px;border-radius:5px;cursor:pointer;}
 </style>
-
-<script src="https://accounts.google.com/gsi/client" async defer></script>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.6.0/firebase-app.js";
-import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/10.6.0/firebase-firestore.js";
+import { getAuth, signInWithPopup, GoogleAuthProvider }
+from "https://www.gstatic.com/firebasejs/10.6.0/firebase-auth.js";
+import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc }
+from "https://www.gstatic.com/firebasejs/10.6.0/firebase-firestore.js";
 
+/* 🔥 Firebase Config */
 const firebaseConfig = {
   apiKey: "AIzaSyD5MrbyqmXoGgFKB_gvY6DX_5bGdbTyh9o",
   authDomain: "heemo-d02f2.firebaseapp.com",
   projectId: "heemo-d02f2",
   storageBucket: "heemo-d02f2.appspot.com",
   messagingSenderId: "777552011368",
-  appId: "1:777552011368:web:8dc7e8cc00644b23dc9bdd",
-  measurementId: "G-B9FM723F42"
+  appId: "1:777552011368:web:8dc7e8cc00644b23dc9bdd"
 };
 
 const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
 const db = getFirestore(app);
-// قائمة بالإيميلات المصرح لها كأدمن
+const provider = new GoogleAuthProvider();
+
+/* 🛡️ الأدمن */
 const ADMINS = ["heemoxo41430@gmail.com", "heemor14@gmail.com"];
+const isAdmin = () => {
+  const u = JSON.parse(localStorage.getItem('user'));
+  return u && ADMINS.includes(u.email);
+};
 
-function isAdmin() {
-  const user = JSON.parse(localStorage.getItem('user'));
-  return user && ADMINS.includes(user.email);
-}
-
-
-function isAdmin() {
-  const user = JSON.parse(localStorage.getItem('user'));
-  return user && user.email === ADMIN_EMAIL;
-}
-
-// استقبال بيانات المستخدم بعد تسجيل الدخول
-window.handleCredentialResponse = function(response) {
-  const token = response.credential;
-  const data = JSON.parse(atob(token.split('.')[1]));
-  const user = { name: data.name, email: data.email };
+/* 🔐 تسجيل الدخول */
+window.login = async () => {
+  const res = await signInWithPopup(auth, provider);
+  const user = { name: res.user.displayName, email: res.user.email };
   localStorage.setItem('user', JSON.stringify(user));
-  document.getElementById('userStatus').innerText = `✅ تم تسجيل الدخول كـ ${user.name}`;
+  document.getElementById('userStatus').innerText =
+    `✅ تم تسجيل الدخول كـ ${user.name}`;
   reloadWorkshops();
-}
+};
 
-// إضافة ورشة
-window.addWorkshop = async function() {
-  if (!isAdmin()) { alert('هذه الخاصية مخصصة للأدمن فقط'); return; }
+/* ➕ إضافة ورشة */
+window.addWorkshop = async () => {
+  if(!isAdmin()) return alert('للأدمن فقط');
+  await addDoc(collection(db,"workshops"),{
+    name:name.value,
+    spec:spec.value,
+    cat:category.value,
+    phone:phone.value,
+    loc:loc.value,
+    rate:Number(rate.value)
+  });
+  reloadWorkshops();
+};
 
-  const w = {
-    name: name.value,
-    spec: spec.value,
-    cat: category.value,
-    phone: phone.value,
-    loc: loc.value,
-    rate: rate.value
-  };
+/* 🗑️ حذف */
+window.deleteWorkshop = async id => {
+  if(!isAdmin()) return;
+  await deleteDoc(doc(db,"workshops",id));
+  reloadWorkshops();
+};
 
-  try {
-    await addDoc(collection(db, "workshops"), w);
-    reloadWorkshops();
-    name.value=''; spec.value=''; phone.value=''; loc.value='';
-  } catch (err) {
-    console.error(err);
-    alert('حدث خطأ أثناء إضافة الورشة.');
-  }
-}
-
-// حذف ورشة
-window.deleteWorkshop = async function(id) {
-  if (!isAdmin()) { alert('هذه الخاصية مخصصة للأدمن فقط'); return; }
-  try {
-    await deleteDoc(doc(db, "workshops", id));
-    reloadWorkshops();
-  } catch (err) {
-    console.error(err);
-    alert('حدث خطأ أثناء حذف الورشة.');
-  }
-}
-
-// عرض الورش
-function renderWorkshop(w) {
-  let stars = '★★★★★☆☆☆☆☆'.slice(5 - w.rate, 10 - w.rate);
-  const card = document.createElement('div');
-  card.className = 'card';
-  card.dataset.search = w.name + ' ' + w.spec;
-  card.innerHTML = `
+/* 🧱 عرض */
+function renderWorkshop(w){
+  const stars = '★★★★★☆☆☆☆☆'.slice(5-w.rate,10-w.rate);
+  const c = document.createElement('div');
+  c.className='card';
+  c.dataset.search=(w.name+' '+w.spec).toLowerCase();
+  c.innerHTML=`
     <h3>${w.name}</h3>
     <p>${w.spec}</p>
     <div class="rating">${stars}</div>
     <div class="location">📞 ${w.phone}</div>
-    <div class="location">📍 ${w.loc}</div>
-  `;
+    <div class="location">📍 ${w.loc}</div>`;
   if(isAdmin()){
-    const btn = document.createElement('button');
-    btn.className='delete-btn';
-    btn.innerText='حذف';
-    btn.onclick = (e) => { e.stopPropagation(); deleteWorkshop(w.id); }
-    card.appendChild(btn);
+    const b=document.createElement('button');
+    b.className='delete-btn'; b.innerText='حذف';
+    b.onclick=e=>{e.stopPropagation();deleteWorkshop(w.id)};
+    c.appendChild(b);
   }
-  card.onclick = () => openDetails(card);
-  document.getElementById(w.cat+'Cards').appendChild(card);
+  document.getElementById(w.cat+'Cards').appendChild(c);
 }
 
-// إعادة تحميل الورش
-async function reloadWorkshops() {
-  document.getElementById('carsCards').innerHTML='';
-  document.getElementById('generalCards').innerHTML='';
-  const querySnapshot = await getDocs(collection(db, "workshops"));
-  querySnapshot.forEach(docSnap=>{
-    let w = docSnap.data();
-    w.id = docSnap.id;
-    renderWorkshop(w);
-  });
+/* 🔄 تحميل */
+async function reloadWorkshops(){
+  carsCards.innerHTML='';
+  generalCards.innerHTML='';
+  const qs=await getDocs(collection(db,"workshops"));
+  qs.forEach(d=>renderWorkshop({...d.data(),id:d.id}));
 }
 
-// فتح تفاصيل الورشة
-window.openDetails = function(card){
-  const w = {
-    name: card.querySelector('h3').innerText,
-    spec: card.querySelector('p').innerText,
-    phone: card.querySelectorAll('.location')[0].innerText,
-    loc: card.querySelectorAll('.location')[1].innerText
-  };
-  localStorage.setItem('currentWorkshop', JSON.stringify(w));
-  window.location.href='details.html';
-}
-
-// البحث
-document.getElementById('search').addEventListener('keyup', e=>{
-  let v = e.target.value.toLowerCase();
+/* 🔍 بحث */
+search.onkeyup=e=>{
   document.querySelectorAll('.card').forEach(c=>{
-    c.style.display = c.dataset.search.toLowerCase().includes(v)?'block':'none';
+    c.style.display=c.dataset.search.includes(e.target.value.toLowerCase())?'':'none';
   });
-});
+};
 
-window.onload = function(){
-  const user = JSON.parse(localStorage.getItem('user'));
-  if(user){
-    document.getElementById('userStatus').innerText = `✅ تم تسجيل الدخول كـ ${user.name}`;
-  }
-  reloadWorkshops();
-}
+window.onload=reloadWorkshops;
 </script>
 </head>
+
 <body>
 
 <header>
   <h1>الصناعية – صناعية صامطة</h1>
   <p>دليل شامل يجمع ورش وصنايعية صناعية صامطة</p>
   <div class="search-box">
-    <input type="text" id="search" placeholder="🔍 ابحث عن تخصص أو اسم ورشة">
+    <input id="search" placeholder="🔍 ابحث">
   </div>
 </header>
 
@@ -204,23 +162,17 @@ window.onload = function(){
 </section>
 
 <section class="section">
-<h2>لوحة تحكم الصنايعي</h2>
+<h2>لوحة التحكم</h2>
 <div class="dashboard">
-  <div id="g_id_onload"
-       data-client_id="270081556974-dbvblq6cd4g63339hevqkhlvsd50ac0g.apps.googleusercontent.com"
-       data-callback="handleCredentialResponse">
-  </div>
-  <div class="g_id_signin"></div>
-
+  <button onclick="login()">تسجيل الدخول بجوجل</button>
   <p id="userStatus"></p>
-
   <input id="name" placeholder="اسم الورشة">
   <input id="spec" placeholder="التخصص">
   <select id="category">
-    <option value="cars">صناعيات السيارات</option>
-    <option value="general">الورش العامة</option>
+    <option value="cars">سيارات</option>
+    <option value="general">عامة</option>
   </select>
-  <input id="phone" placeholder="رقم الجوال">
+  <input id="phone" placeholder="الجوال">
   <input id="loc" placeholder="الموقع">
   <select id="rate">
     <option value="5">★★★★★</option>
@@ -232,7 +184,8 @@ window.onload = function(){
 </section>
 
 </div>
-<footer>© 2025 الصناعية – صناعية صامطة</footer>
 
+<footer>© 2025 الصناعية – صناعية صامطة</footer>
 </body>
 </html>
+
