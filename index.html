@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<title>الصناعية | صناعية صامطة</title>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --accent:#2563eb;
+  --card:#ffffff;
+  --text:#1e293b;
+  --muted:#64748b;
+  --star:#facc15;
+}
+*{box-sizing:border-box}
+body{
+  margin:0;
+  font-family:'Cairo',sans-serif;
+  background:linear-gradient(135deg,#0f172a,#1e293b);
+  color:#fff;
+}
+header{text-align:center;padding:40px 20px}
+header p{color:#cbd5f5}
+.search-box{max-width:500px;margin:30px auto}
+.search-box input{width:100%;padding:14px;border-radius:12px;border:none}
+.container{width:90%;max-width:1200px;margin:40px auto}
+.section{margin-bottom:60px}
+.section h2{border-right:6px solid var(--accent);padding-right:15px}
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:22px}
+.card{background:var(--card);color:var(--text);border-radius:16px;padding:22px;box-shadow:0 15px 35px rgba(0,0,0,.2);cursor:pointer}
+.card h3{margin:0}
+.card p{color:var(--muted);font-size:14px}
+.rating{color:var(--star);margin:6px 0}
+.location{font-size:13px;color:#475569}
+.dashboard{background:#fff;color:var(--text);padding:30px;border-radius:18px}
+.dashboard input,select,button{width:100%;padding:12px;margin-bottom:15px;border-radius:10px}
+.dashboard button{background:var(--accent);color:#fff;border:none;font-size:16px;cursor:pointer}
+footer{text-align:center;padding:25px;color:#cbd5f5}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>الصناعية – صناعية صامطة</h1>
+  <p>دليل شامل يجمع ورش وصنايعية صناعية صامطة</p>
+  <div class="search-box">
+    <input type="text" id="search" placeholder="🔍 ابحث عن تخصص أو اسم ورشة">
+  </div>
+</header>
+
+<div class="container">
+
+<section class="section">
+<h2>صناعيات السيارات</h2>
+<div class="cards" id="carsCards"></div>
+</section>
+
+<section class="section">
+<h2>الورش العامة</h2>
+<div class="cards" id="generalCards"></div>
+</section>
+
+<section class="section">
+<h2>لوحة تحكم الصنايعي</h2>
+<div class="dashboard">
+<button id="loginBtn">تسجيل الدخول بـ Google</button>
+<p id="userStatus"></p>
+
+<input id="name" placeholder="اسم الورشة">
+<input id="spec" placeholder="التخصص">
+<select id="category">
+  <option value="cars">صناعيات السيارات</option>
+  <option value="general">الورش العامة</option>
+</select>
+<input id="phone" placeholder="رقم الجوال">
+<input id="loc" placeholder="الموقع">
+<select id="rate">
+  <option value="5">★★★★★</option>
+  <option value="4">★★★★☆</option>
+  <option value="3">★★★☆☆</option>
+</select>
+<button onclick="addWorkshop()">إضافة الورشة</button>
+</div>
+</section>
+
+</div>
+<footer>© 2025 الصناعية – صناعية صامطة</footer>
+
+<!-- Firebase SDK عبر CDN -->
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.6.0/firebase-app.js";
+import { getAuth, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/10.6.0/firebase-auth.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyD5MrbyqmXoGgFKB_gvY6DX_5bGdbTyh9o",
+  authDomain: "heemo-d02f2.firebaseapp.com",
+  projectId: "heemo-d02f2",
+  storageBucket: "heemo-d02f2.appspot.com",
+  messagingSenderId: "777552011368",
+  appId: "1:777552011368:web:8dc7e8cc00644b23dc9bdd",
+  measurementId: "G-B9FM723F42"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const provider = new GoogleAuthProvider();
+
+// تسجيل الدخول
+document.getElementById('loginBtn').addEventListener('click', () => {
+  signInWithPopup(auth, provider)
+  .then(result => {
+    const user = result.user;
+    localStorage.setItem('user', JSON.stringify({name: user.displayName, email: user.email}));
+    document.getElementById('userStatus').innerText = '✅ تم تسجيل الدخول كـ ' + user.displayName;
+  })
+  .catch(error => {
+    console.error(error);
+    alert('فشل تسجيل الدخول: ' + error.message);
+  });
+});
+
+// تحميل الورش المحفوظة
+window.onload = function() {
+  let saved = JSON.parse(localStorage.getItem('workshops')) || [];
+  saved.forEach(w => renderWorkshop(w));
+}
+
+// إضافة ورشة
+window.addWorkshop = function() {
+  if(!localStorage.getItem('user')){
+    alert('سجّل دخولك أولاً');
+    return;
+  }
+
+  let w = {
+    name: name.value,
+    spec: spec.value,
+    cat: category.value,
+    phone: phone.value,
+    loc: loc.value,
+    rate: rate.value
+  };
+
+  let data = JSON.parse(localStorage.getItem('workshops')) || [];
+  data.push(w);
+  localStorage.setItem('workshops', JSON.stringify(data));
+
+  renderWorkshop(w);
+
+  document.getElementById('name').value='';
+  document.getElementById('spec').value='';
+  document.getElementById('phone').value='';
+  document.getElementById('loc').value='';
+}
+
+// عرض بطاقة ورشة
+function renderWorkshop(w){
+  let stars='★★★★★☆☆☆☆☆'.slice(5-w.rate,10-w.rate);
+  let card=document.createElement('div');
+  card.className='card';
+  card.dataset.search=w.name+' '+w.spec;
+  card.onclick=()=>openDetails(card);
+  card.innerHTML=`
+    <h3>${w.name}</h3>
+    <p>${w.spec}</p>
+    <div class="rating">${stars}</div>
+    <div class="location">📞 ${w.phone}</div>
+    <div class="location">📍 ${w.loc}</div>
+  `;
+  document.getElementById(w.cat+'Cards').appendChild(card);
+}
+
+// فتح تفاصيل الورشة
+window.openDetails = function(card){
+  const w = {
+    name: card.querySelector('h3').innerText,
+    spec: card.querySelector('p').innerText,
+    phone: card.querySelectorAll('.location')[0].innerText,
+    loc: card.querySelectorAll('.location')[1].innerText
+  };
+  localStorage.setItem('currentWorkshop', JSON.stringify(w));
+  window.location.href = 'details.html';
+}
+
+// البحث
+document.getElementById('search').addEventListener('keyup', e => {
+  let v = e.target.value.toLowerCase();
+  document.querySelectorAll('.card').forEach(c => {
+    c.style.display = c.dataset.search.toLowerCase().includes(v) ? 'block' : 'none';
+  });
+});
+</script>
+
+</body>
+</html>
