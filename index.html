@@ -41,32 +41,29 @@ footer{text-align:center;padding:25px;color:#cbd5f5}
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.6.0/firebase-app.js";
-import { getAuth, signInWithPopup, GoogleAuthProvider }
-from "https://www.gstatic.com/firebasejs/10.6.0/firebase-auth.js";
-import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc }
-from "https://www.gstatic.com/firebasejs/10.6.0/firebase-firestore.js";
+import { getAuth, GoogleAuthProvider } from "https://www.gstatic.com/firebasejs/10.6.0/firebase-auth.js";
+import { getFirestore } from "https://www.gstatic.com/firebasejs/10.6.0/firebase-firestore.js";
 
-/* 🔥 Firebase Config */
+/* 🔥 Firebase Config (الصحيح) */
 const firebaseConfig = {
-  apiKey: "AIzaSyD5MrbyqmXoGgFKB_gvY6DX_5bGdbTyh9o",
-  authDomain: "heemo-d02f2.firebaseapp.com",
-  projectId: "heemo-d02f2",
-  storageBucket: "heemo-d02f2.appspot.com",
-  messagingSenderId: "777552011368",
-  appId: "1:777552011368:web:8dc7e8cc00644b23dc9bdd"
+  apiKey: "AIzaSyBdhesRwD2eiDvqqcMGhC59U4whICwTO3E",
+  authDomain: "sanaeya-samtah.firebaseapp.com",
+  projectId: "sanaeya-samtah",
+  storageBucket: "sanaeya-samtah.appspot.com",
+  messagingSenderId: "1092994215610",
+  appId: "1:1092994215610:web:e68b5a3eccb24235d39c83"
 };
 
+/* Initialize */
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 const provider = new GoogleAuthProvider();
 
-/* 🛡️ الأدمن */
+/* 👑 الأدمن */
 const ADMINS = ["heemoxo41430@gmail.com", "heemor14@gmail.com"];
-const isAdmin = () => {
-  const u = JSON.parse(localStorage.getItem('user'));
-  return u && ADMINS.includes(u.email);
-};
+</script>
+
 
 /* 🔐 تسجيل الدخول */
 window.login = async () => {
