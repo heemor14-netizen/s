@@ -57,7 +57,14 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
-const ADMIN_EMAIL = "heemoxo41430@gmail.com"; // حساب الأدمن الجديد
+// قائمة بالإيميلات المصرح لها كأدمن
+const ADMINS = ["heemoxo41430@gmail.com", "heemor14@gmail.com"];
+
+function isAdmin() {
+  const user = JSON.parse(localStorage.getItem('user'));
+  return user && ADMINS.includes(user.email);
+}
+
 
 function isAdmin() {
   const user = JSON.parse(localStorage.getItem('user'));
