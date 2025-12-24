@@ -7,19 +7,10 @@
 
 <style>
 :root{
-  --accent:#2563eb;
-  --card:#ffffff;
-  --text:#1e293b;
-  --muted:#64748b;
-  --star:#facc15;
+  --accent:#2563eb;--card:#fff;--text:#1e293b;--muted:#64748b;--star:#facc15
 }
 *{box-sizing:border-box}
-body{
-  margin:0;
-  font-family:'Cairo',sans-serif;
-  background:linear-gradient(135deg,#0f172a,#1e293b);
-  color:#fff;
-}
+body{margin:0;font-family:'Cairo',sans-serif;background:linear-gradient(135deg,#0f172a,#1e293b);color:#fff}
 header{text-align:center;padding:40px 20px}
 header p{color:#cbd5f5}
 .search-box{max-width:500px;margin:30px auto}
@@ -28,23 +19,23 @@ header p{color:#cbd5f5}
 .section{margin-bottom:60px}
 .section h2{border-right:6px solid var(--accent);padding-right:15px}
 .cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:22px}
-.card{background:var(--card);color:var(--text);border-radius:16px;padding:22px;box-shadow:0 15px 35px rgba(0,0,0,.2);cursor:pointer;position:relative}
+.card{background:var(--card);color:var(--text);border-radius:16px;padding:22px;box-shadow:0 15px 35px rgba(0,0,0,.2);position:relative}
 .card p{color:var(--muted);font-size:14px}
-.rating{color:var(--star);margin:6px 0}
+.rating{color:var(--star)}
 .location{font-size:13px;color:#475569}
-.dashboard{background:#fff;color:var(--text);padding:30px;border-radius:18px;margin-top:30px}
+.dashboard{background:#fff;color:var(--text);padding:30px;border-radius:18px}
 .dashboard input,select,button{width:100%;padding:12px;margin-bottom:15px;border-radius:10px}
 .dashboard button{background:var(--accent);color:#fff;border:none;font-size:16px;cursor:pointer}
-.delete-btn{position:absolute;top:10px;right:10px;background:red;color:#fff;border:none;padding:5px 10px;border-radius:5px;cursor:pointer}
+.delete-btn{position:absolute;top:10px;right:10px;background:red;color:#fff;border:none;padding:5px 10px;border-radius:5px}
 footer{text-align:center;padding:25px;color:#cbd5f5}
 </style>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.6.0/firebase-app.js";
-import { getAuth, GoogleAuthProvider } from "https://www.gstatic.com/firebasejs/10.6.0/firebase-auth.js";
-import { getFirestore } from "https://www.gstatic.com/firebasejs/10.6.0/firebase-firestore.js";
+import { getAuth, signInWithPopup, GoogleAuthProvider } from "https://www.gstatic.com/firebasejs/10.6.0/firebase-auth.js";
+import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/10.6.0/firebase-firestore.js";
 
-/* 🔥 Firebase Config (الصحيح) */
+/* ✅ Firebase الصحيح */
 const firebaseConfig = {
   apiKey: "AIzaSyBdhesRwD2eiDvqqcMGhC59U4whICwTO3E",
   authDomain: "sanaeya-samtah.firebaseapp.com",
@@ -54,135 +45,97 @@ const firebaseConfig = {
   appId: "1:1092994215610:web:e68b5a3eccb24235d39c83"
 };
 
-/* Initialize */
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 const provider = new GoogleAuthProvider();
 
-/* 👑 الأدمن */
-const ADMINS = ["heemoxo41430@gmail.com", "heemor14@gmail.com"];
-</script>
+const ADMINS = ["heemoxo41430@gmail.com","heemor14@gmail.com"];
+const isAdmin = () => {
+  const u = JSON.parse(localStorage.getItem('user'));
+  return u && ADMINS.includes(u.email);
+};
 
-
-/* 🔐 تسجيل الدخول */
 window.login = async () => {
   const res = await signInWithPopup(auth, provider);
-  const user = { name: res.user.displayName, email: res.user.email };
-  localStorage.setItem('user', JSON.stringify(user));
-  document.getElementById('userStatus').innerText =
-    `✅ تم تسجيل الدخول كـ ${user.name}`;
-  reloadWorkshops();
+  localStorage.setItem('user', JSON.stringify({
+    name: res.user.displayName,
+    email: res.user.email
+  }));
+  userStatus.innerText = `✅ تم تسجيل الدخول`;
+  load();
 };
 
-/* ➕ إضافة ورشة */
 window.addWorkshop = async () => {
-  if(!isAdmin()) return alert('للأدمن فقط');
+  if(!isAdmin()) return alert("للأدمن فقط");
   await addDoc(collection(db,"workshops"),{
-    name:name.value,
-    spec:spec.value,
-    cat:category.value,
-    phone:phone.value,
-    loc:loc.value,
-    rate:Number(rate.value)
+    name:name.value,spec:spec.value,cat:category.value,
+    phone:phone.value,loc:loc.value,rate:+rate.value
   });
-  reloadWorkshops();
+  load();
 };
 
-/* 🗑️ حذف */
 window.deleteWorkshop = async id => {
   if(!isAdmin()) return;
   await deleteDoc(doc(db,"workshops",id));
-  reloadWorkshops();
+  load();
 };
 
-/* 🧱 عرض */
-function renderWorkshop(w){
-  const stars = '★★★★★☆☆☆☆☆'.slice(5-w.rate,10-w.rate);
-  const c = document.createElement('div');
+function render(w){
+  const c=document.createElement('div');
   c.className='card';
-  c.dataset.search=(w.name+' '+w.spec).toLowerCase();
   c.innerHTML=`
     <h3>${w.name}</h3>
     <p>${w.spec}</p>
-    <div class="rating">${stars}</div>
+    <div class="rating">${'★★★★★☆☆☆☆☆'.slice(5-w.rate,10-w.rate)}</div>
     <div class="location">📞 ${w.phone}</div>
     <div class="location">📍 ${w.loc}</div>`;
   if(isAdmin()){
     const b=document.createElement('button');
-    b.className='delete-btn'; b.innerText='حذف';
-    b.onclick=e=>{e.stopPropagation();deleteWorkshop(w.id)};
+    b.className='delete-btn';b.innerText='حذف';
+    b.onclick=()=>deleteWorkshop(w.id);
     c.appendChild(b);
   }
   document.getElementById(w.cat+'Cards').appendChild(c);
 }
 
-/* 🔄 تحميل */
-async function reloadWorkshops(){
-  carsCards.innerHTML='';
-  generalCards.innerHTML='';
+async function load(){
+  carsCards.innerHTML='';generalCards.innerHTML='';
   const qs=await getDocs(collection(db,"workshops"));
-  qs.forEach(d=>renderWorkshop({...d.data(),id:d.id}));
+  qs.forEach(d=>render({...d.data(),id:d.id}));
 }
 
-/* 🔍 بحث */
-search.onkeyup=e=>{
-  document.querySelectorAll('.card').forEach(c=>{
-    c.style.display=c.dataset.search.includes(e.target.value.toLowerCase())?'':'none';
-  });
-};
-
-window.onload=reloadWorkshops;
+window.onload=load;
 </script>
+ 
 </head>
-
 <body>
-
 <header>
-  <h1>الصناعية – صناعية صامطة</h1>
-  <p>دليل شامل يجمع ورش وصنايعية صناعية صامطة</p>
-  <div class="search-box">
-    <input id="search" placeholder="🔍 ابحث">
-  </div>
+<h1>الصناعية – صناعية صامطة</h1>
+<p>دليل شامل للورش</p>
+<div class="search-box"><input placeholder="🔍 بحث"></div>
 </header>
 
 <div class="container">
+<section><h2>صناعيات السيارات</h2><div id="carsCards" class="cards"></div></section>
+<section><h2>الورش العامة</h2><div id="generalCards" class="cards"></div></section>
 
-<section class="section">
-<h2>صناعيات السيارات</h2>
-<div class="cards" id="carsCards"></div>
-</section>
-
-<section class="section">
-<h2>الورش العامة</h2>
-<div class="cards" id="generalCards"></div>
-</section>
-
-<section class="section">
+<section>
 <h2>لوحة التحكم</h2>
 <div class="dashboard">
-  <button onclick="login()">تسجيل الدخول بجوجل</button>
-  <p id="userStatus"></p>
-  <input id="name" placeholder="اسم الورشة">
-  <input id="spec" placeholder="التخصص">
-  <select id="category">
-    <option value="cars">سيارات</option>
-    <option value="general">عامة</option>
-  </select>
-  <input id="phone" placeholder="الجوال">
-  <input id="loc" placeholder="الموقع">
-  <select id="rate">
-    <option value="5">★★★★★</option>
-    <option value="4">★★★★☆</option>
-    <option value="3">★★★☆☆</option>
-  </select>
-  <button onclick="addWorkshop()">إضافة الورشة</button>
+<button onclick="login()">تسجيل الدخول بجوجل</button>
+<p id="userStatus"></p>
+<input id="name" placeholder="اسم الورشة">
+<input id="spec" placeholder="التخصص">
+<select id="category"><option value="cars">سيارات</option><option value="general">عامة</option></select>
+<input id="phone" placeholder="الجوال">
+<input id="loc" placeholder="الموقع">
+<select id="rate"><option value="5">★★★★★</option><option value="4">★★★★☆</option></select>
+<button onclick="addWorkshop()">إضافة</button>
 </div>
 </section>
-
 </div>
 
-<footer>© 2025 الصناعية – صناعية صامطة</footer>
+<footer>© 2025 صناعية صامطة</footer>
 </body>
 </html>
-
