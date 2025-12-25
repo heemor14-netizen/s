@@ -102,8 +102,15 @@ button{
   <input id="map" placeholder="رابط موقع الورشة" required>
 
   <!-- صور -->
-  <input type="file" id="images" accept="image/*" multiple>
-  <small>حد أقصى 6 صور</small>
+  <label>صور الورشة (حد أقصى 6)</label>
+<input 
+  type="file" 
+  id="imagesInput" 
+  accept="image/*" 
+  multiple 
+>
+<small>تقدر تختار إلى 6 صور</small>
+
 
   <button type="submit">حفظ الورشة</button>
 </form>
@@ -113,26 +120,47 @@ button{
 </div>
 
 <script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.6.0/firebase-app.js";
-import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, updateDoc }
-from "https://www.gstatic.com/firebasejs/10.6.0/firebase-firestore.js";
-import { getStorage, ref, uploadBytes, getDownloadURL }
-from "https://www.gstatic.com/firebasejs/10.6.0/firebase-storage.js";
+  // Firebase App
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.6.0/firebase-app.js";
 
-const firebaseConfig = {
-  apiKey: "AIzaSyBdhesRwD2eiDvqqcMGhC59U4whICwTO3E",
-  authDomain: "sanaeya-samtah.firebaseapp.com",
-  projectId: "sanaeya-samtah",
-  storageBucket: "sanaeya-samtah.firebasestorage.app",
-  messagingSenderId: "1092994215610",
-  appId: "1:1092994215610:web:e68b5a3eccb24235d39c83"
-};
+  // Firestore
+  import {
+    getFirestore,
+    collection,
+    addDoc,
+    getDocs,
+    deleteDoc,
+    doc,
+    updateDoc
+  } from "https://www.gstatic.com/firebasejs/10.6.0/firebase-firestore.js";
 
-const nameInput = document.getElementById("name");
-const descInput = document.getElementById("desc");
-const catInput = document.getElementById("cat");
-const phoneInput = document.getElementById("phone");
-const mapInput = document.getElementById("map");
+  // Storage
+  import {
+    getStorage,
+    ref,
+    uploadBytes,
+    getDownloadURL
+  } from "https://www.gstatic.com/firebasejs/10.6.0/firebase-storage.js";
+
+  // 🔹 إعدادات Firebase (تأكد موجودة فوق)
+  const firebaseConfig = {
+    apiKey: "AIzaSyBdhesRwD2eiDvqqcMGhC59U4whICwTO3E",
+    authDomain: "sanaeya-samtah.firebaseapp.com",
+    projectId: "sanaeya-samtah",
+    storageBucket: "sanaeya-samtah.firebasestorage.app",
+    messagingSenderId: "1092994215610",
+    appId: "1:1092994215610:web:e68b5a3eccb24235d39c83"
+  };
+
+  // 🔹 تهيئة Firebase
+  const app = initializeApp(firebaseConfig);
+
+  // 🔹 تعريف Firestore و Storage (هنا كان الخطأ عندك)
+  const db = getFirestore(app);
+  const storage = getStorage(app);
+
+  // من هنا كودك يكمل طبيعي 👌
+
 
 
 window.openMaps = () => window.open("https://www.google.com/maps","_blank");
