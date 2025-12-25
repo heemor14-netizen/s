@@ -1,148 +1,94 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl">
+<html lang="ar">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>لوحة التحكم | صناعية صامطة</title>
+  <meta charset="UTF-8">
+  <title>لوحة التحكم</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
 
-<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
-
-<style>
-body{
-  margin:0;
-  font-family:'Cairo',sans-serif;
-  background:#0f172a;
-  color:#fff;
-}
-.container{
-  width:95%;
-  max-width:900px;
-  margin:40px auto;
-}
-h1{margin-bottom:20px}
-form{
-  background:#fff;
-  color:#1e293b;
-  padding:25px;
-  border-radius:16px;
-}
-input,select,textarea,button{
-  width:100%;
-  padding:12px;
-  margin-bottom:14px;
-  border-radius:10px;
-  border:1px solid #ccc;
-  font-family:'Cairo';
-}
-textarea{resize:vertical}
-button{
-  background:#2563eb;
-  color:#fff;
-  border:none;
-  cursor:pointer;
-}
-.success{
-  background:#dcfce7;
-  color:#166534;
-  padding:10px;
-  border-radius:10px;
-  margin-bottom:15px;
-  display:none;
-}
-.cards{
-  margin-top:40px;
-  display:grid;
-  gap:16px;
-}
-.card{
-  background:#fff;
-  color:#1e293b;
-  padding:16px;
-  border-radius:14px;
-}
-.card img{
-  width:100%;
-  max-height:160px;
-  object-fit:cover;
-  border-radius:10px;
-  margin-top:8px;
-}
-.actions{
-  display:flex;
-  gap:10px;
-  margin-top:10px;
-}
-.delete{background:#dc2626}
-.edit{background:#16a34a}
-</style>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f5f5f5;
+      padding: 20px;
+    }
+    h2 {
+      text-align: center;
+    }
+    form, .workshop {
+      background: #fff;
+      padding: 15px;
+      border-radius: 10px;
+      margin-bottom: 20px;
+      box-shadow: 0 2px 8px rgba(0,0,0,.1);
+    }
+    input, textarea, button {
+      width: 100%;
+      margin: 6px 0;
+      padding: 10px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+    }
+    button {
+      background: #2e7d32;
+      color: #fff;
+      border: none;
+      cursor: pointer;
+    }
+    button:hover {
+      background: #1b5e20;
+    }
+    .images img {
+      width: 80px;
+      margin: 4px;
+      border-radius: 8px;
+    }
+    .actions button {
+      margin-top: 5px;
+      background: #444;
+    }
+    .delete {
+      background: #c62828 !important;
+    }
+  </style>
 </head>
 
 <body>
-<div class="container">
 
-<h1>لوحة التحكم – الورش</h1>
+<h2>لوحة التحكم – إدارة الورش</h2>
 
-<div class="success" id="successMsg">✅ تمت العملية بنجاح</div>
-
-<form id="form">
+<form id="workshopForm">
   <input id="name" placeholder="اسم الورشة" required>
-  <textarea id="desc" placeholder="وصف الورشة" required></textarea>
+  <input id="phone" placeholder="رقم الجوال (واتس)" type="tel" pattern="[0-9]+" required>
+  <textarea id="description" placeholder="وصف الورشة" required></textarea>
 
-  <select id="cat" required>
-    <option value="">اختر القسم</option>
-    <option value="cars">سيارات</option>
-    <option value="metal">حدادة</option>
-    <option value="sofa">كنب</option>
-    <option value="aluminum">ألمنيوم</option>
-  </select>
+  <input id="locationLink" placeholder="رابط موقع الورشة من قوقل ماب" required>
 
-  <input id="phone" placeholder="رقم الجوال" inputmode="numeric" pattern="[0-9]*" required>
-
-  <button type="button" onclick="openMaps()">📍 افتح قوقل ماب لنسخ الرابط</button>
-  <input id="map" placeholder="رابط موقع الورشة" required>
-
-  <!-- صور -->
   <label>صور الورشة (حد أقصى 6)</label>
-<input 
-  type="file" 
-  id="imagesInput" 
-  accept="image/*" 
-  multiple 
->
-<small>تقدر تختار إلى 6 صور</small>
-
+  <input type="file" id="imagesInput" accept="image/*" multiple>
+<button type="button" onclick="openGoogleMaps()">
+  📍 تحديد الموقع من Google Maps
+</button>
 
   <button type="submit">حفظ الورشة</button>
 </form>
 
-<div class="cards" id="list"></div>
-
-</div>
+<div id="workshops"></div>
 
 <script type="module">
-  // Firebase App
+  // Firebase imports
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.6.0/firebase-app.js";
-
-  // Firestore
   import {
-    getFirestore,
-    collection,
-    addDoc,
-    getDocs,
-    deleteDoc,
-    doc,
-    updateDoc
+    getFirestore, collection, addDoc, getDocs,
+    deleteDoc, doc, updateDoc
   } from "https://www.gstatic.com/firebasejs/10.6.0/firebase-firestore.js";
-
-  // Storage
   import {
-    getStorage,
-    ref,
-    uploadBytes,
-    getDownloadURL
+    getStorage, ref, uploadBytes, getDownloadURL
   } from "https://www.gstatic.com/firebasejs/10.6.0/firebase-storage.js";
+window.openGoogleMaps = () => {
+  window.open("https://www.google.com/maps", "_blank");
+};
 
-  // 🔹 إعدادات Firebase (تأكد موجودة فوق)
+  // Firebase config
   const firebaseConfig = {
     apiKey: "AIzaSyBdhesRwD2eiDvqqcMGhC59U4whICwTO3E",
     authDomain: "sanaeya-samtah.firebaseapp.com",
@@ -152,99 +98,106 @@ button{
     appId: "1:1092994215610:web:e68b5a3eccb24235d39c83"
   };
 
-  // 🔹 تهيئة Firebase
+  // Init
   const app = initializeApp(firebaseConfig);
-
-  // 🔹 تعريف Firestore و Storage (هنا كان الخطأ عندك)
   const db = getFirestore(app);
   const storage = getStorage(app);
 
-  // من هنا كودك يكمل طبيعي 👌
+  const form = document.getElementById("workshopForm");
+  const workshopsDiv = document.getElementById("workshops");
 
-
-
-window.openMaps = () => window.open("https://www.google.com/maps","_blank");
-
-form.onsubmit = async (e)=>{
-  e.preventDefault();
-
-  const files = document.getElementById("images").files;
-  if(files.length > 6){
-    alert("حد أقصى 6 صور");
-    return;
+  async function uploadImages(files, workshopId) {
+    const urls = [];
+    for (let file of files) {
+      const imageRef = ref(
+        storage,
+        `workshops/${workshopId}/${Date.now()}_${file.name}`
+      );
+      await uploadBytes(imageRef, file);
+      const url = await getDownloadURL(imageRef);
+      urls.push(url);
+    }
+    return urls;
   }
 
-  const imagesURLs = [];
-  for(const file of files){
-    const imgRef = ref(storage, `workshops/${Date.now()}_${file.name}`);
-    await uploadBytes(imgRef, file);
-    imagesURLs.push(await getDownloadURL(imgRef));
+  form.onsubmit = async (e) => {
+    e.preventDefault();
+
+    const name = document.getElementById("name").value.trim();
+    const phone = document.getElementById("phone").value.trim();
+    const description = document.getElementById("description").value.trim();
+    const locationLink = document.getElementById("locationLink").value.trim();
+    const files = document.getElementById("imagesInput").files;
+
+    if (files.length > 6) {
+      alert("الحد الأقصى 6 صور");
+      return;
+    }
+
+    const docRef = await addDoc(collection(db, "workshops"), {
+      name,
+      phone,
+      description,
+      locationLink,
+      images: [],
+      createdAt: Date.now()
+    });
+
+    let imageUrls = [];
+    if (files.length > 0) {
+      imageUrls = await uploadImages(files, docRef.id);
+    }
+
+    await updateDoc(doc(db, "workshops", docRef.id), {
+      images: imageUrls
+    });
+
+    alert("تمت إضافة الورشة بنجاح ✅");
+    form.reset();
+    loadWorkshops();
+  };
+
+  async function loadWorkshops() {
+    workshopsDiv.innerHTML = "";
+    const snap = await getDocs(collection(db, "workshops"));
+
+    snap.forEach(d => {
+      const w = d.data();
+
+      const div = document.createElement("div");
+      div.className = "workshop";
+
+      div.innerHTML = `
+        <strong>${w.name}</strong><br>
+        ${w.description}<br>
+        <a href="https://wa.me/966${w.phone}" target="_blank">${w.phone}</a><br>
+        <a href="${w.locationLink}" target="_blank">عرض الموقع</a>
+        <div class="images"></div>
+        <div class="actions">
+          <button class="delete">حذف</button>
+        </div>
+      `;
+
+      const imagesDiv = div.querySelector(".images");
+      w.images?.forEach(url => {
+        const img = document.createElement("img");
+        img.src = url;
+        imagesDiv.appendChild(img);
+      });
+
+      div.querySelector(".delete").onclick = async () => {
+        if (confirm("متأكد من الحذف؟")) {
+          await deleteDoc(doc(db, "workshops", d.id));
+          loadWorkshops();
+        }
+      };
+
+      workshopsDiv.appendChild(div);
+    });
   }
 
-const data = {
-  name: w.name,
-  desc: w.desc,
-  cat: w.cat,
-  phone: w.phone,
-  map: w.map,
-  images: imagesURLs
-};
-
-nameInput.value = w.name;
-descInput.value = w.desc;
-catInput.value = w.cat;
-phoneInput.value = w.phone;
-mapInput.value = w.map || "";
-
-
-  if(editId){
-    await updateDoc(doc(db,"workshops",editId),data);
-    editId=null;
-  }else{
-    await addDoc(collection(db,"workshops"),data);
-  }
-
-  successMsg.style.display="block";
-  setTimeout(()=>successMsg.style.display="none",3000);
-  form.reset();
-  load();
-};
-
-async function load(){
-  list.innerHTML="";
-  const q = await getDocs(collection(db,"workshops"));
-  q.forEach(d=>{
-    const w=d.data();
-    const c=document.createElement("div");
-    c.className="card";
-    c.innerHTML=`
-      <h3>${w.name}</h3>
-      <p>${w.desc}</p>
-      ${(w.images||[]).map(i=>`<img src="${i}">`).join("")}
-      <div class="actions">
-        <button class="edit">تعديل</button>
-        <button class="delete">حذف</button>
-      </div>
-    `;
-    c.querySelector(".delete").onclick=async()=>{
-      await deleteDoc(doc(db,"workshops",d.id));
-      load();
-    };
-    c.querySelector(".edit").onclick=()=>{
-      name.value=w.name;
-      desc.value=w.desc;
-      cat.value=w.cat;
-      phone.value=w.phone;
-      map.value=w.map;
-      editId=d.id;
-      scrollTo({top:0,behavior:"smooth"});
-    };
-    list.appendChild(c);
-  });
-}
-load();
+  loadWorkshops();
 </script>
+
 </body>
 </html>
-
-
