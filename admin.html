@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>لوحة المطور | صناعية صامطة</title>
+<title>لوحة المطور</title>
 
 <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
 
@@ -14,148 +14,105 @@ body{
   background:#0f172a;
   color:#fff;
 }
-header{
-  text-align:center;
-  padding:20px;
-  border-bottom:1px solid rgba(255,255,255,.1);
-}
 .container{
-  width:95%;
-  max-width:1200px;
-  margin:30px auto;
-}
-
-/* نموذج الإضافة */
-.form{
+  max-width:900px;
+  margin:40px auto;
   background:#fff;
   color:#1e293b;
-  padding:20px;
-  border-radius:14px;
-  margin-bottom:30px;
+  padding:30px;
+  border-radius:16px;
 }
-.form h3{margin-top:0}
-.form input,.form select{
+h1{text-align:center;margin-bottom:30px}
+
+form input,form select,form button{
   width:100%;
-  padding:10px;
-  margin-bottom:10px;
-  border-radius:8px;
-  border:1px solid #cbd5f5;
-}
-.form button{
-  background:#2563eb;
-  color:#fff;
-  border:none;
   padding:12px;
-  width:100%;
+  margin-bottom:12px;
   border-radius:10px;
-  cursor:pointer;
-  font-size:16px;
+  border:1px solid #cbd5f5;
+  font-family:'Cairo';
 }
 
-/* الجدول */
-table{
-  width:100%;
-  border-collapse:collapse;
-  background:#fff;
-  color:#1e293b;
-  border-radius:14px;
-  overflow:hidden;
-}
-th,td{
-  padding:10px;
-  border-bottom:1px solid #e5e7eb;
-  text-align:center;
-  font-size:14px;
-}
-th{
+form button{
   background:#2563eb;
   color:#fff;
+  border:none;
+  font-size:16px;
+  cursor:pointer;
 }
-tr:hover{background:#f1f5f9}
 
-button.edit{
-  background:#22c55e;
-  color:#fff;
+#msg{
+  margin-top:10px;
+  color:green;
+  font-weight:600;
+  display:none;
 }
-button.delete{
-  background:#ef4444;
-  color:#fff;
+
+.list{
+  margin-top:40px;
 }
-button.edit,button.delete{
+
+.item{
+  background:#f1f5f9;
+  padding:15px;
+  border-radius:12px;
+  margin-bottom:12px;
+}
+
+.item button{
+  margin-left:8px;
+  padding:6px 12px;
   border:none;
-  padding:6px 10px;
-  border-radius:6px;
+  border-radius:8px;
   cursor:pointer;
-  margin:2px;
+  font-family:'Cairo';
 }
-.back{
-  margin-top:20px;
-  background:#334155;
-  color:#fff;
-  border:none;
-  padding:10px 20px;
-  border-radius:10px;
-  cursor:pointer;
-}
+
+.edit{background:#facc15}
+.del{background:#ef4444;color:#fff}
 </style>
 </head>
 
 <body>
 
-<header>
-  <h1>لوحة المطور</h1>
-  <p>إضافة – تعديل – حذف الورش</p>
-</header>
-
 <div class="container">
+<h1>لوحة إدارة الورش</h1>
 
-  <!-- إضافة ورشة -->
-  <div class="form">
-    <h3>➕ إضافة ورشة جديدة</h3>
-    <input id="name" placeholder="اسم الورشة">
-    <input id="spec" placeholder="التخصص">
-    <select id="cat">
-      <option value="cars">سيارات</option>
-      <option value="metal">حدادة</option>
-      <option value="sofa">كنب</option>
-      <option value="aluminum">ألمنيوم</option>
-    </select>
-    <input id="phone" placeholder="رقم الجوال">
-    <input id="loc" placeholder="الموقع">
-    <select id="rate">
-      <option value="5">★★★★★</option>
-      <option value="4">★★★★☆</option>
-      <option value="3">★★★☆☆</option>
-    </select>
-    <button onclick="addWorkshop()">إضافة الورشة</button>
-  </div>
+<form id="form">
+  <input id="name" placeholder="اسم الورشة" required>
+  <input id="spec" placeholder="التخصص" required>
 
-  <!-- جدول الورش -->
-  <table>
-    <thead>
-      <tr>
-        <th>الاسم</th>
-        <th>التخصص</th>
-        <th>القسم</th>
-        <th>الجوال</th>
-        <th>الموقع</th>
-        <th>التقييم</th>
-        <th>إجراءات</th>
-      </tr>
-    </thead>
-    <tbody id="list"></tbody>
-  </table>
+  <select id="cat">
+    <option value="cars">سيارات</option>
+    <option value="metal">حدادة</option>
+    <option value="sofa">كنب</option>
+    <option value="aluminum">ألمنيوم</option>
+  </select>
 
-  <button class="back" onclick="location.href='index.html'">⬅️ رجوع للموقع</button>
+  <input id="phone" placeholder="رقم الجوال" inputmode="numeric" pattern="[0-9]*" required>
+  <input id="loc" placeholder="الموقع" required>
+
+  <select id="rate">
+    <option value="5">★★★★★</option>
+    <option value="4">★★★★☆</option>
+    <option value="3">★★★☆☆</option>
+  </select>
+
+  <button type="submit">حفظ الورشة</button>
+  <div id="msg">✅ تمت إضافة الورشة بنجاح</div>
+</form>
+
+<div class="list" id="list"></div>
 </div>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.6.0/firebase-app.js";
 import {
-  getFirestore, collection, addDoc, getDocs, deleteDoc, updateDoc, doc
+  getFirestore, collection, addDoc, getDocs,
+  deleteDoc, updateDoc, doc
 } from "https://www.gstatic.com/firebasejs/10.6.0/firebase-firestore.js";
 
-/* Firebase sanaeya-samtah */
+/* 🔥 Firebase (sanaeya-samtah) */
 const firebaseConfig = {
   apiKey: "AIzaSyBdhesRwD2eiDvqqcMGhC59U4whICwTO3E",
   authDomain: "sanaeya-samtah.firebaseapp.com",
@@ -168,69 +125,82 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-/* حماية الأدمن */
-const ADMINS = ["heemoxo41430@gmail.com","heemor14@gmail.com"];
-const user = JSON.parse(localStorage.getItem("user"));
-if(!user || !ADMINS.includes(user.email)){
-  alert("غير مصرح لك بالدخول");
-  location.href="index.html";
-}
+/* 🔗 عناصر */
+const form = document.getElementById("form");
+const list = document.getElementById("list");
+const msg = document.getElementById("msg");
 
-/* إضافة */
-window.addWorkshop = async ()=>{
-  await addDoc(collection(db,"workshops"),{
-    name:name.value,
-    spec:spec.value,
-    cat:cat.value,
-    phone:phone.value,
-    loc:loc.value,
-    rate:+rate.value
-  });
+const nameInput = document.getElementById("name");
+const specInput = document.getElementById("spec");
+const catInput = document.getElementById("cat");
+const phoneInput = document.getElementById("phone");
+const locInput = document.getElementById("loc");
+const rateInput = document.getElementById("rate");
+
+let editId = null;
+
+/* ➕ إضافة / ✏️ تعديل */
+form.onsubmit = async e => {
+  e.preventDefault();
+
+  const data = {
+    name: nameInput.value.trim(),
+    spec: specInput.value.trim(),
+    cat: catInput.value,
+    phone: phoneInput.value.trim(),
+    loc: locInput.value.trim(),
+    rate: Number(rateInput.value)
+  };
+
+  if(editId){
+    await updateDoc(doc(db,"workshops",editId), data);
+    editId = null;
+  }else{
+    await addDoc(collection(db,"workshops"), data);
+    msg.style.display="block";
+    setTimeout(()=>msg.style.display="none",2500);
+  }
+
+  form.reset();
   load();
 };
 
-/* تحميل */
+/* 🧾 عرض */
 async function load(){
   list.innerHTML="";
-  const q=await getDocs(collection(db,"workshops"));
+  const q = await getDocs(collection(db,"workshops"));
   q.forEach(d=>{
-    const w=d.data();
-    const tr=document.createElement("tr");
-    tr.innerHTML=`
-      <td contenteditable>${w.name}</td>
-      <td contenteditable>${w.spec}</td>
-      <td contenteditable>${w.cat}</td>
-      <td contenteditable>${w.phone}</td>
-      <td contenteditable>${w.loc}</td>
-      <td contenteditable>${w.rate}</td>
-      <td>
-        <button class="edit">حفظ</button>
-        <button class="delete">حذف</button>
-      </td>
+    const w = d.data();
+    const div = document.createElement("div");
+    div.className="item";
+    div.innerHTML=`
+      <b>${w.name}</b> – ${w.spec}<br>
+      📞 ${w.phone} | 📍 ${w.loc}<br><br>
+      <button class="edit">تعديل</button>
+      <button class="del">حذف</button>
     `;
-    const tds=tr.querySelectorAll("td");
-    tr.querySelector(".edit").onclick=async()=>{
-      await updateDoc(doc(db,"workshops",d.id),{
-        name:tds[0].innerText,
-        spec:tds[1].innerText,
-        cat:tds[2].innerText,
-        phone:tds[3].innerText,
-        loc:tds[4].innerText,
-        rate:+tds[5].innerText
-      });
-      alert("تم التعديل ✅");
+    div.querySelector(".edit").onclick=()=>{
+      editId=d.id;
+      nameInput.value=w.name;
+      specInput.value=w.spec;
+      catInput.value=w.cat;
+      phoneInput.value=w.phone;
+      locInput.value=w.loc;
+      rateInput.value=w.rate;
     };
-    tr.querySelector(".delete").onclick=async()=>{
-      if(confirm("متأكد؟")){
+    div.querySelector(".del").onclick=async()=>{
+      if(confirm("متأكد من الحذف؟")){
         await deleteDoc(doc(db,"workshops",d.id));
         load();
       }
     };
-    list.appendChild(tr);
+    list.appendChild(div);
   });
 }
+
 load();
 </script>
 
 </body>
 </html>
+
