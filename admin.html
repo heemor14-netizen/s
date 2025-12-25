@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>لوحة تحكم المطور</title>
+<title>لوحة التحكم | صناعية صامطة</title>
 
 <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
 
@@ -15,86 +15,78 @@ body{
   color:#fff;
 }
 .container{
+  width:95%;
   max-width:900px;
-  margin:30px auto;
+  margin:40px auto;
 }
-h1{text-align:center}
-
+h1{margin-bottom:20px}
 form{
   background:#fff;
   color:#1e293b;
-  padding:20px;
+  padding:25px;
   border-radius:16px;
-  margin-bottom:30px;
 }
 input,select,textarea,button{
   width:100%;
   padding:12px;
-  margin-bottom:12px;
+  margin-bottom:14px;
   border-radius:10px;
-  border:1px solid #cbd5f5;
+  border:1px solid #ccc;
   font-family:'Cairo';
 }
-textarea{resize:none}
+textarea{resize:vertical}
 button{
   background:#2563eb;
   color:#fff;
   border:none;
   cursor:pointer;
 }
-button:hover{opacity:.9}
-
-.workshops{
+.success{
+  background:#dcfce7;
+  color:#166534;
+  padding:10px;
+  border-radius:10px;
+  margin-bottom:15px;
+  display:none;
+}
+.cards{
+  margin-top:40px;
   display:grid;
-  gap:15px;
+  gap:16px;
 }
 .card{
   background:#fff;
   color:#1e293b;
-  padding:15px;
+  padding:16px;
   border-radius:14px;
-  position:relative;
 }
-.card small{color:#64748b}
-.del{
-  position:absolute;
-  top:10px;
-  left:10px;
-  background:red;
-  color:#fff;
-  border:none;
-  padding:5px 10px;
-  border-radius:6px;
-  cursor:pointer;
+.card img{
+  width:100%;
+  max-height:160px;
+  object-fit:cover;
+  border-radius:10px;
+  margin-top:8px;
 }
-.back{
-  display:block;
-  text-align:center;
-  margin-top:20px;
-  color:#cbd5f5;
-  text-decoration:none;
+.actions{
+  display:flex;
+  gap:10px;
+  margin-top:10px;
 }
-.success{
-  color:green;
-  font-weight:700;
-  margin-bottom:10px;
-}
+.delete{background:#dc2626}
+.edit{background:#16a34a}
 </style>
 </head>
 
 <body>
-
 <div class="container">
 
-<h1>لوحة تحكم الورش</h1>
+<h1>لوحة التحكم – الورش</h1>
+
+<div class="success" id="successMsg">✅ تمت العملية بنجاح</div>
 
 <form id="form">
-  <div id="msg"></div>
-
   <input id="name" placeholder="اسم الورشة" required>
-  <input id="spec" placeholder="التخصص" required>
-
-  <textarea id="desc" placeholder="وصف الورشة" rows="4" required></textarea>
+  <textarea id="desc" placeholder="وصف الورشة" required></textarea>
 
   <select id="cat" required>
     <option value="">اختر القسم</option>
@@ -104,25 +96,28 @@ button:hover{opacity:.9}
     <option value="aluminum">ألمنيوم</option>
   </select>
 
-  <input id="phone" placeholder="رقم الجوال" required
-         oninput="this.value=this.value.replace(/[^0-9]/g,'')">
+  <input id="phone" placeholder="رقم الجوال" inputmode="numeric" pattern="[0-9]*" required>
 
-  <input id="loc" placeholder="حدد الموقع من الخريطة" readonly required>
-  <button type="button" onclick="openMap()">📍 تحديد الموقع من قوقل ماب</button>
+  <button type="button" onclick="openMaps()">📍 افتح قوقل ماب لنسخ الرابط</button>
+  <input id="map" placeholder="رابط موقع الورشة" required>
 
-  <button type="submit">إضافة الورشة</button>
+  <!-- صور -->
+  <input type="file" id="images" accept="image/*" multiple>
+  <small>حد أقصى 6 صور</small>
+
+  <button type="submit">حفظ الورشة</button>
 </form>
 
-<div class="workshops" id="list"></div>
-
-<a class="back" href="index.html">⬅️ الرجوع للموقع</a>
+<div class="cards" id="list"></div>
 
 </div>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.6.0/firebase-app.js";
-import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc }
+import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, updateDoc }
 from "https://www.gstatic.com/firebasejs/10.6.0/firebase-firestore.js";
+import { getStorage, ref, uploadBytes, getDownloadURL }
+from "https://www.gstatic.com/firebasejs/10.6.0/firebase-storage.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyBdhesRwD2eiDvqqcMGhC59U4whICwTO3E",
@@ -133,28 +128,56 @@ const firebaseConfig = {
   appId: "1:1092994215610:web:e68b5a3eccb24235d39c83"
 };
 
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
+const nameInput = document.getElementById("name");
+const descInput = document.getElementById("desc");
+const catInput = document.getElementById("cat");
+const phoneInput = document.getElementById("phone");
+const mapInput = document.getElementById("map");
 
-const form = document.getElementById("form");
-const list = document.getElementById("list");
-const msg = document.getElementById("msg");
 
-form.onsubmit = async e => {
+window.openMaps = () => window.open("https://www.google.com/maps","_blank");
+
+form.onsubmit = async (e)=>{
   e.preventDefault();
 
-  const data = {
-    name: name.value.trim(),
-    spec: spec.value.trim(),
-    description: desc.value.trim(),
-    cat: cat.value,
-    phone: phone.value.trim(),
-    loc: loc.value.trim()
-  };
+  const files = document.getElementById("images").files;
+  if(files.length > 6){
+    alert("حد أقصى 6 صور");
+    return;
+  }
 
-  await addDoc(collection(db,"workshops"), data);
+  const imagesURLs = [];
+  for(const file of files){
+    const imgRef = ref(storage, `workshops/${Date.now()}_${file.name}`);
+    await uploadBytes(imgRef, file);
+    imagesURLs.push(await getDownloadURL(imgRef));
+  }
 
-  msg.innerHTML = "<div class='success'>✅ تم إضافة الورشة بنجاح</div>";
+const data = {
+  name: w.name,
+  desc: w.desc,
+  cat: w.cat,
+  phone: w.phone,
+  map: w.map,
+  images: imagesURLs
+};
+
+nameInput.value = w.name;
+descInput.value = w.desc;
+catInput.value = w.cat;
+phoneInput.value = w.phone;
+mapInput.value = w.map || "";
+
+
+  if(editId){
+    await updateDoc(doc(db,"workshops",editId),data);
+    editId=null;
+  }else{
+    await addDoc(collection(db,"workshops"),data);
+  }
+
+  successMsg.style.display="block";
+  setTimeout(()=>successMsg.style.display="none",3000);
   form.reset();
   load();
 };
@@ -167,34 +190,33 @@ async function load(){
     const c=document.createElement("div");
     c.className="card";
     c.innerHTML=`
-      <strong>${w.name}</strong>
-      <small>${w.spec}</small>
-      <p>${w.description}</p>
-      <small>📞 ${w.phone}</small><br>
-      <small>📍 ${w.loc}</small>
+      <h3>${w.name}</h3>
+      <p>${w.desc}</p>
+      ${(w.images||[]).map(i=>`<img src="${i}">`).join("")}
+      <div class="actions">
+        <button class="edit">تعديل</button>
+        <button class="delete">حذف</button>
+      </div>
     `;
-    const b=document.createElement("button");
-    b.className="del";
-    b.innerText="حذف";
-    b.onclick=()=>del(d.id);
-    c.appendChild(b);
+    c.querySelector(".delete").onclick=async()=>{
+      await deleteDoc(doc(db,"workshops",d.id));
+      load();
+    };
+    c.querySelector(".edit").onclick=()=>{
+      name.value=w.name;
+      desc.value=w.desc;
+      cat.value=w.cat;
+      phone.value=w.phone;
+      map.value=w.map;
+      editId=d.id;
+      scrollTo({top:0,behavior:"smooth"});
+    };
     list.appendChild(c);
   });
 }
-
-async function del(id){
-  await deleteDoc(doc(db,"workshops",id));
-  load();
-}
-
-window.openMap = () => {
-  window.open("https://www.google.com/maps","_blank");
-  alert("📍 حدّد الموقع ثم انسخ العنوان والصقه هنا");
-};
-
 load();
 </script>
-
 </body>
 </html>
+
 
