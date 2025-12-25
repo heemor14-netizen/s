@@ -8,6 +8,48 @@
 <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
 
 <style>
+ .skeleton{
+  background:#e5e7eb;
+  border-radius:16px;
+  overflow:hidden;
+  position:relative;
+}
+
+.skeleton::after{
+  content:"";
+  position:absolute;
+  top:0;
+  left:-100%;
+  width:100%;
+  height:100%;
+  background:linear-gradient(
+    90deg,
+    transparent,
+    rgba(255,255,255,.6),
+    transparent
+  );
+  animation: shimmer 1.2s infinite;
+}
+
+@keyframes shimmer{
+  100%{left:100%}
+}
+
+.skeleton-img{
+  height:160px;
+  background:#d1d5db;
+}
+
+.skeleton-text{
+  height:14px;
+  margin:14px;
+  background:#d1d5db;
+  border-radius:6px;
+}
+
+
+
+  
 /* ===== تسجيل الدخول ===== */
 .auth-box{
   position:absolute;
@@ -92,6 +134,36 @@ header p{color:#cbd5f5}
   background:#fff;color:var(--text);border-radius:16px;padding:22px;
   box-shadow:0 15px 35px rgba(0,0,0,.2);
 }
+.card{
+  position:relative;
+  overflow:hidden;
+}
+.whatsapp-float{
+  position:absolute;
+  bottom:14px;
+  left:14px;
+  width:46px;
+  height:46px;
+  background:#25D366;
+  border-radius:50%;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  color:#fff;
+  font-size:22px;
+  text-decoration:none;
+  box-shadow:0 8px 20px rgba(37,211,102,.5);
+  transition:.3s;
+  z-index:5;
+}
+
+.whatsapp-float:hover{
+  transform:scale(1.12);
+  box-shadow:0 12px 30px rgba(37,211,102,.8);
+}
+
+
+
 .card:hover{transform:translateY(-6px)}
 .support{
   margin:30px auto;background:linear-gradient(135deg,#22c55e,#16a34a);
@@ -99,6 +171,70 @@ header p{color:#cbd5f5}
 }
 .support a{color:#fff;text-decoration:none;font-weight:700}
 footer{text-align:center;padding:25px;color:#cbd5f5}
+.card{
+  overflow:hidden;
+}
+
+.card-cover{
+  width:calc(100% + 44px);
+  height:160px;
+  margin:-22px -22px 15px -22px;
+}
+
+
+.card-cover img{
+  width:100%;
+  height:100%;
+  object-fit:cover;
+  border-top-left-radius:16px;
+  border-top-right-radius:16px;
+}
+/* ===== صورة العرض المتقدمة ===== */
+.card-cover-wrap{
+  position:relative;
+  overflow:hidden;
+  border-radius:16px 16px 0 0;
+  margin:-22px -22px 15px -22px;
+}
+
+.card-cover-wrap img{
+  width:100%;
+  height:180px;
+  object-fit:cover;
+  transition:transform .6s ease;
+}
+
+/* Gradient */
+.card-cover-wrap::after{
+  content:"";
+  position:absolute;
+  inset:0;
+  background:linear-gradient(
+    to top,
+    rgba(0,0,0,.55),
+    rgba(0,0,0,.15),
+    transparent
+  );
+}
+
+/* اسم الورشة */
+.card-title{
+  position:absolute;
+  bottom:14px;
+  right:16px;
+  left:16px;
+  color:#fff;
+  font-size:18px;
+  font-weight:700;
+  z-index:2;
+  text-shadow:0 4px 15px rgba(0,0,0,.6);
+}
+
+/* Hover زوم */
+.card:hover .card-cover-wrap img{
+  transform:scale(1.08);
+}
+
 </style>
 
 <script type="module">
@@ -149,10 +285,18 @@ onAuthStateChanged(auth, user=>{
 
 /* تحميل الورش */
 async function load(){
-  carsCards.innerHTML="";
-  metalCards.innerHTML="";
-  sofaCards.innerHTML="";
-  aluminumCards.innerHTML="";
+ carsCards.innerHTML =
+metalCards.innerHTML =
+sofaCards.innerHTML =
+aluminumCards.innerHTML =
+Array(4).fill(`
+  <div class="card skeleton">
+    <div class="skeleton-img"></div>
+    <div class="skeleton-text"></div>
+    <div class="skeleton-text" style="width:70%"></div>
+  </div>
+`).join("");
+
   const q=await getDocs(collection(db,"workshops"));
   q.forEach(d=>{
     const w=d.data();
@@ -160,13 +304,34 @@ async function load(){
     c.className="card";
     c.style.cursor="pointer";
 c.onclick=()=>{
-  localStorage.setItem("currentWorkshop", JSON.stringify(w));
-  location.href="details.html";
+ c.onclick = () => {
+  location.href = "details.html?id=" + d.id;
 };
 
-    c.innerHTML=`<h3>${w.name}</h3><p>${w.spec}</p>`;
+};
+
+ c.innerHTML = `
+  ${w.cover ? `
+    <div class="card-cover-wrap">
+      <img src="${w.cover}">
+      <div class="card-title">${w.name}</div>
+    </div>
+  ` : `<h3>${w.name}</h3>`}
+
+  <p>${w.spec}</p>
+
+  <a class="whatsapp-float"
+     href="https://wa.me/${w.phone}"
+     target="_blank"
+     onclick="event.stopPropagation()">
+    💬
+  </a>
+`;
+
+
     document.getElementById(w.cat+"Cards").appendChild(c);
   });
+  
 }
 window.onload=load;
 
@@ -175,7 +340,9 @@ window.goTo=id=>{
 };
 window.scrollCats=v=>{
   document.getElementById("categories").scrollBy({left:v,behavior:"smooth"});
+  
 };
+
 </script>
 </head>
 
