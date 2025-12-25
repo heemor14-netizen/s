@@ -158,6 +158,12 @@ async function load(){
     const w=d.data();
     const c=document.createElement("div");
     c.className="card";
+    c.style.cursor="pointer";
+c.onclick=()=>{
+  localStorage.setItem("currentWorkshop", JSON.stringify(w));
+  location.href="details.html";
+};
+
     c.innerHTML=`<h3>${w.name}</h3><p>${w.spec}</p>`;
     document.getElementById(w.cat+"Cards").appendChild(c);
   });

@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>لوحة المطور</title>
+<title>لوحة تحكم المطور</title>
 
 <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
 
@@ -16,15 +16,18 @@ body{
 }
 .container{
   max-width:900px;
-  margin:40px auto;
+  margin:30px auto;
+}
+h1{text-align:center}
+
+form{
   background:#fff;
   color:#1e293b;
-  padding:30px;
+  padding:20px;
   border-radius:16px;
+  margin-bottom:30px;
 }
-h1{text-align:center;margin-bottom:30px}
-
-form input,form select,form button{
+input,select,textarea,button{
   width:100%;
   padding:12px;
   margin-bottom:12px;
@@ -32,87 +35,95 @@ form input,form select,form button{
   border:1px solid #cbd5f5;
   font-family:'Cairo';
 }
-
-form button{
+textarea{resize:none}
+button{
   background:#2563eb;
   color:#fff;
   border:none;
-  font-size:16px;
   cursor:pointer;
 }
+button:hover{opacity:.9}
 
-#msg{
-  margin-top:10px;
-  color:green;
-  font-weight:600;
-  display:none;
+.workshops{
+  display:grid;
+  gap:15px;
 }
-
-.list{
-  margin-top:40px;
-}
-
-.item{
-  background:#f1f5f9;
+.card{
+  background:#fff;
+  color:#1e293b;
   padding:15px;
-  border-radius:12px;
-  margin-bottom:12px;
+  border-radius:14px;
+  position:relative;
 }
-
-.item button{
-  margin-left:8px;
-  padding:6px 12px;
+.card small{color:#64748b}
+.del{
+  position:absolute;
+  top:10px;
+  left:10px;
+  background:red;
+  color:#fff;
   border:none;
-  border-radius:8px;
+  padding:5px 10px;
+  border-radius:6px;
   cursor:pointer;
-  font-family:'Cairo';
 }
-
-.edit{background:#facc15}
-.del{background:#ef4444;color:#fff}
+.back{
+  display:block;
+  text-align:center;
+  margin-top:20px;
+  color:#cbd5f5;
+  text-decoration:none;
+}
+.success{
+  color:green;
+  font-weight:700;
+  margin-bottom:10px;
+}
 </style>
 </head>
 
 <body>
 
 <div class="container">
-<h1>لوحة إدارة الورش</h1>
+
+<h1>لوحة تحكم الورش</h1>
 
 <form id="form">
+  <div id="msg"></div>
+
   <input id="name" placeholder="اسم الورشة" required>
   <input id="spec" placeholder="التخصص" required>
 
-  <select id="cat">
+  <textarea id="desc" placeholder="وصف الورشة" rows="4" required></textarea>
+
+  <select id="cat" required>
+    <option value="">اختر القسم</option>
     <option value="cars">سيارات</option>
     <option value="metal">حدادة</option>
     <option value="sofa">كنب</option>
     <option value="aluminum">ألمنيوم</option>
   </select>
 
-  <input id="phone" placeholder="رقم الجوال" inputmode="numeric" pattern="[0-9]*" required>
-  <input id="loc" placeholder="الموقع" required>
+  <input id="phone" placeholder="رقم الجوال" required
+         oninput="this.value=this.value.replace(/[^0-9]/g,'')">
 
-  <select id="rate">
-    <option value="5">★★★★★</option>
-    <option value="4">★★★★☆</option>
-    <option value="3">★★★☆☆</option>
-  </select>
+  <input id="loc" placeholder="حدد الموقع من الخريطة" readonly required>
+  <button type="button" onclick="openMap()">📍 تحديد الموقع من قوقل ماب</button>
 
-  <button type="submit">حفظ الورشة</button>
-  <div id="msg">✅ تمت إضافة الورشة بنجاح</div>
+  <button type="submit">إضافة الورشة</button>
 </form>
 
-<div class="list" id="list"></div>
+<div class="workshops" id="list"></div>
+
+<a class="back" href="index.html">⬅️ الرجوع للموقع</a>
+
 </div>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.6.0/firebase-app.js";
-import {
-  getFirestore, collection, addDoc, getDocs,
-  deleteDoc, updateDoc, doc
-} from "https://www.gstatic.com/firebasejs/10.6.0/firebase-firestore.js";
+import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc }
+from "https://www.gstatic.com/firebasejs/10.6.0/firebase-firestore.js";
 
-/* 🔥 Firebase (sanaeya-samtah) */
 const firebaseConfig = {
   apiKey: "AIzaSyBdhesRwD2eiDvqqcMGhC59U4whICwTO3E",
   authDomain: "sanaeya-samtah.firebaseapp.com",
@@ -125,78 +136,61 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-/* 🔗 عناصر */
 const form = document.getElementById("form");
 const list = document.getElementById("list");
 const msg = document.getElementById("msg");
 
-const nameInput = document.getElementById("name");
-const specInput = document.getElementById("spec");
-const catInput = document.getElementById("cat");
-const phoneInput = document.getElementById("phone");
-const locInput = document.getElementById("loc");
-const rateInput = document.getElementById("rate");
-
-let editId = null;
-
-/* ➕ إضافة / ✏️ تعديل */
 form.onsubmit = async e => {
   e.preventDefault();
 
   const data = {
-    name: nameInput.value.trim(),
-    spec: specInput.value.trim(),
-    cat: catInput.value,
-    phone: phoneInput.value.trim(),
-    loc: locInput.value.trim(),
-    rate: Number(rateInput.value)
+    name: name.value.trim(),
+    spec: spec.value.trim(),
+    description: desc.value.trim(),
+    cat: cat.value,
+    phone: phone.value.trim(),
+    loc: loc.value.trim()
   };
 
-  if(editId){
-    await updateDoc(doc(db,"workshops",editId), data);
-    editId = null;
-  }else{
-    await addDoc(collection(db,"workshops"), data);
-    msg.style.display="block";
-    setTimeout(()=>msg.style.display="none",2500);
-  }
+  await addDoc(collection(db,"workshops"), data);
 
+  msg.innerHTML = "<div class='success'>✅ تم إضافة الورشة بنجاح</div>";
   form.reset();
   load();
 };
 
-/* 🧾 عرض */
 async function load(){
   list.innerHTML="";
   const q = await getDocs(collection(db,"workshops"));
   q.forEach(d=>{
-    const w = d.data();
-    const div = document.createElement("div");
-    div.className="item";
-    div.innerHTML=`
-      <b>${w.name}</b> – ${w.spec}<br>
-      📞 ${w.phone} | 📍 ${w.loc}<br><br>
-      <button class="edit">تعديل</button>
-      <button class="del">حذف</button>
+    const w=d.data();
+    const c=document.createElement("div");
+    c.className="card";
+    c.innerHTML=`
+      <strong>${w.name}</strong>
+      <small>${w.spec}</small>
+      <p>${w.description}</p>
+      <small>📞 ${w.phone}</small><br>
+      <small>📍 ${w.loc}</small>
     `;
-    div.querySelector(".edit").onclick=()=>{
-      editId=d.id;
-      nameInput.value=w.name;
-      specInput.value=w.spec;
-      catInput.value=w.cat;
-      phoneInput.value=w.phone;
-      locInput.value=w.loc;
-      rateInput.value=w.rate;
-    };
-    div.querySelector(".del").onclick=async()=>{
-      if(confirm("متأكد من الحذف؟")){
-        await deleteDoc(doc(db,"workshops",d.id));
-        load();
-      }
-    };
-    list.appendChild(div);
+    const b=document.createElement("button");
+    b.className="del";
+    b.innerText="حذف";
+    b.onclick=()=>del(d.id);
+    c.appendChild(b);
+    list.appendChild(c);
   });
 }
+
+async function del(id){
+  await deleteDoc(doc(db,"workshops",id));
+  load();
+}
+
+window.openMap = () => {
+  window.open("https://www.google.com/maps","_blank");
+  alert("📍 حدّد الموقع ثم انسخ العنوان والصقه هنا");
+};
 
 load();
 </script>
